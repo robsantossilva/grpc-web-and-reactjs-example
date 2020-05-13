@@ -1,0 +1,74 @@
+version: '3.7'
+
+networks:
+    driver:
+        name: driver
+        driver: bridge
+
+services: 
+    mysql:
+        container_name: driver-mysql
+        image: mysql
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+            MYSQL_ROOT_PASSWORD: mysql
+            MYSQL_DATABASE: driver_db
+        ports: 
+            - 3306:3306
+        networks: 
+            - driver
+
+    driver-backend:
+        container_name: driver-backend
+        build:
+            context: ./driver-backend
+        entrypoint: ./.docker/entrypoint.sh
+        environment:
+            - CHOKIDAR_USEPOLLING=true
+        volumes: 
+            - ./driver-backend:/home/node/app
+        ports:
+            - 50051:50051 
+        networks: 
+            - driver
+        depends_on: 
+            - mysql
+
+    driver-web:
+        build: 
+            context: ./driver-web
+        entrypoint: ./.docker/entrypoint.sh
+        container_name: driver-web
+        tty: true
+        environment:
+            - CHOKIDAR_USEPOLLING=true
+        ports:
+            - 3000:3000
+        volumes:
+            - ./driver-web:/home/node/app
+        networks:
+            - driver
+
+    # grpc-client:
+    #     container_name: grpc-client
+    #     build:
+    #         context: ./grpc-client
+    #     entrypoint: ./.docker/entrypoint.sh
+    #     environment:
+    #         - CHOKIDAR_USEPOLLING=true
+    #     volumes: 
+    #         - ./grpc-client:/home/node/app
+    #     ports:
+    #         - 3001:3001 
+    #     networks: 
+    #         - driver
+
+    envoy:
+        container_name: envoy-proxy
+        build:
+            context: ./envoy
+        ports: 
+            - 9090:9090
+            - 9901:9901
+        networks: 
+            - driver

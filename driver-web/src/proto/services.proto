@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package pb;
+
+message Driver {
+    string name = 1;
+    string cpf = 2;
+}
+
+message CreateDriverRequest {
+    Driver driver = 1;
+}
+message CreateDriverResponse {
+    string id = 1;
+}
+
+message GetListDriverRequest {
+    string page = 1;
+    string countPerPage = 2;
+}
+message GetListDriverResponse {
+    repeated Driver driver = 1;
+}
+
+service DriverService {
+    rpc CreateDriver ( CreateDriverRequest ) returns (CreateDriverResponse) {}
+    rpc GetListDriver ( GetListDriverRequest ) returns ( GetListDriverResponse ) {}
+}
